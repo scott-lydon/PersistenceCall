@@ -20,14 +20,14 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ dataAction: DataAction? = nil
     ){
-        let url = try! FileManager.default.with(hash: deterministicHash)
+        let url = try! FileManager.default.with(hash: deterministicHash + "data")
         if let availableData: Data = try? FileHandle(forReadingFrom: url).availableData,
            let payload: Payload<Data> = availableData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()) {
             dataAction?(payload.value)
         } else {
             self.getData { data in
-                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash)
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "data")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try! payloadData.write(to: url)
                 dataAction?(data)
@@ -44,14 +44,14 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ jsonAction: DictionaryAction? = nil
     ) {
-        let url = try! FileManager.default.with(hash: deterministicHash)
+        let url = try! FileManager.default.with(hash: deterministicHash + "[String: Any]")
         if let availableData: Data = try? FileHandle(forReadingFrom: url).availableData,
            let payload: Payload<Data> = availableData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()) {
             jsonAction?((try? payload.value.jsonDictionary()) ?? [:])
         } else {
             self.getData { data in
-                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash)
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "[String: Any]")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try? payloadData.write(to: url)
                 jsonAction?((try? payload.value.jsonDictionary()) ?? [:])
@@ -67,7 +67,7 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ action: @escaping (T?)->Void
     ) {
-        let url = try! FileManager.default.with(hash: deterministicHash)
+        let url = try! FileManager.default.with(hash: deterministicHash + String(describing: T.self))
         if let availableData: Data = try? FileHandle(forReadingFrom: url).availableData,
            let payload: Payload<Data> = availableData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()) {
@@ -78,7 +78,7 @@ public extension URLRequest {
             }
         } else {
             self.getData { data in
-                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash)
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + String(describing: T.self))
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try? payloadData.write(to: url)
                 if let t: T = payload.value.codable() {
@@ -99,14 +99,14 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ dataAction: ((Payload<Data>) -> Void)? = nil
     ){
-        let url = try! FileManager.default.with(hash: deterministicHash)
+        let url = try! FileManager.default.with(hash: deterministicHash + "Payload<Data>")
         if let availableData: Data = try? FileHandle(forReadingFrom: url).availableData,
            let payload: Payload<Data> = availableData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()) {
             dataAction?(payload)
         } else {
             self.getData { data in
-                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash)
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "Payload<Data>")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try! payloadData.write(to: url)
                 dataAction?(payload)
@@ -122,7 +122,7 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ action: @escaping (Payload<T>?)->Void
     ) {
-        let url = try! FileManager.default.with(hash: deterministicHash)
+        let url = try! FileManager.default.with(hash: deterministicHash + "Payload<\(String(describing: T.self))>")
         if let availableData: Data = try? FileHandle(forReadingFrom: url).availableData,
            let payload: Payload<T> = availableData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()) {
@@ -130,7 +130,7 @@ public extension URLRequest {
         } else {
             self.callCodable { (t: T?) in
                 if let t = t {
-                    let payload: Payload<T> = Payload(date: Date(), value: t, hash: deterministicHash)
+                    let payload: Payload<T> = Payload(date: Date(), value: t, hash: deterministicHash + "Payload<\(String(describing: T.self))>")
                     let payloadData: Data = try! JSONEncoder().encode(payload)
                     try? payloadData.write(to: url)
                     action(payload)
@@ -150,7 +150,7 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ action: @escaping (Payload<First>?, Payload<Second>?)->Void
     ) {
-        let url: URL? = try? FileManager.default.with(hash: deterministicHash)
+        let url: URL? = try? FileManager.default.with(hash: deterministicHash + "(Payload<\(String(describing: First.self))>?, Payload<\(String(describing: Second.self))>?)")
         let availableData: Data? = url?.fileHandleData
         if let first: Payload<First> = availableData?.codable(),
            fetchStrategy.tryCache(original: first.date, current: Date()) {
@@ -162,12 +162,12 @@ public extension URLRequest {
             self.getData { data in
                 guard let url = url else { return }
                 if let first: First = data.codable() {
-                    let payload: Payload<First> = Payload(date: Date(), value: first, hash: deterministicHash)
+                    let payload: Payload<First> = Payload(date: Date(), value: first, hash: deterministicHash + "(Payload<\(String(describing: First.self))>?, Payload<\(String(describing: Second.self))>?)")
                     let payloadData: Data? = try? JSONEncoder().encode(payload)
                     try? payloadData?.write(to: url)
                     action(payload, nil)
                 } else if let second: Second = data.codable() {
-                    let payload: Payload<Second> = Payload(date: Date(), value: second, hash: deterministicHash)
+                    let payload: Payload<Second> = Payload(date: Date(), value: second, hash: deterministicHash + "(Payload<\(String(describing: First.self))>?, Payload<\(String(describing: Second.self))>?)")
                     let payloadData: Data? = try? JSONEncoder().encode(payload)
                     try? payloadData?.write(to: url)
                     action(nil, payload)
@@ -184,7 +184,7 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ action: @escaping (First?, Second?)->Void
     ) {
-        let url: URL? = try? FileManager.default.with(hash: deterministicHash)
+        let url: URL? = try? FileManager.default.with(hash: deterministicHash + "\(String(describing: First.self))?, \(String(describing: Second.self))?")
         let availableData: Data? = url?.fileHandleData
         if let first: Payload<First> = availableData?.codable(),
            fetchStrategy.tryCache(original: first.date, current: Date()) {
@@ -196,12 +196,12 @@ public extension URLRequest {
             self.getData { data in
                 guard let url = url else { return }
                 if let first: First = data.codable() {
-                    let payload: Payload<First> = Payload(date: Date(), value: first, hash: deterministicHash)
+                    let payload: Payload<First> = Payload(date: Date(), value: first, hash: deterministicHash + "\(String(describing: First.self))?, \(String(describing: Second.self))?")
                     let payloadData: Data? = try? JSONEncoder().encode(payload)
                     try? payloadData?.write(to: url)
                     action(payload.value, nil)
                 } else if let second: Second = data.codable() {
-                    let payload: Payload<Second> = Payload(date: Date(), value: second, hash: deterministicHash)
+                    let payload: Payload<Second> = Payload(date: Date(), value: second, hash: deterministicHash + "\(String(describing: First.self))?, \(String(describing: Second.self))?")
                     let payloadData: Data? = try? JSONEncoder().encode(payload)
                     try? payloadData?.write(to: url)
                     action(nil, payload.value)
