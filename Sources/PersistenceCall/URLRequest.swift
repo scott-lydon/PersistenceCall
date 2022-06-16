@@ -12,6 +12,27 @@ import CommonExtensions
 public extension URLRequest {
 
 
+    /// Uses a semaphore and a wait time to return Data inline from a web call.
+    /// - Parameters:
+    ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
+    ///   - usleepTime: IMPORTANT: usleep() takes millionths of a second, so usleep(1000000) will sleep for 1 sec
+    /// - Returns: return the Data that was exposed.
+    func inlinePersistData(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> Data? {
+        var returnData: Data?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistData(fetchStrategy: fetchStrategy) { data in
+            returnData = data
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return returnData
+    }
+
+
     /// Calls the api, and exposes Data
     /// - Parameters:
     ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
@@ -33,6 +54,26 @@ public extension URLRequest {
                 dataAction?(data)
             }
         }
+    }
+
+    /// Uses a semaphore and a wait time to return Data inline from a web call.
+    /// - Parameters:
+    ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
+    ///   - usleepTime: IMPORTANT: usleep() takes millionths of a second, so usleep(1000000) will sleep for 1 sec
+    /// - Returns: return the Data that was exposed.
+    func inlinePersistJSON(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> [String: Any]? {
+        var jsonDictionary: [String: Any]?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistJSON(fetchStrategy: fetchStrategy) { data in
+            jsonDictionary = data
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return jsonDictionary
     }
 
 
@@ -57,6 +98,22 @@ public extension URLRequest {
                 jsonAction?((try? payload.value.jsonDictionary()) ?? [:])
             }
         }
+    }
+
+
+    func inlinePersistCodable<T: Codable>(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> T? {
+        var codable: T?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistCodable(fetchStrategy: fetchStrategy) { t in
+            codable = t
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return codable
     }
 
     /// Calls the api and exposes a codable item of your choice.
@@ -90,6 +147,21 @@ public extension URLRequest {
         }
     }
 
+    func inlinePersistPayloadData(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> Payload<Data>? {
+        var codable: Payload<Data>?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistData(fetchStrategy: fetchStrategy) { (payload: Payload<Data>?) in
+            codable = payload
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return codable
+    }
+
 
     /// Calls the api, and exposes Data nested in a Payload.  The payload provides the date that the payload was retrieved.  It also includes the hash, which is used to identify this instance.  The hash is mainly used for internal purposes.
     /// - Parameters:
@@ -112,6 +184,21 @@ public extension URLRequest {
                 dataAction?(payload)
             }
         }
+    }
+
+    func inlinePersistPayloadCodable<T: Codable>(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> Payload<T>? {
+        var codable: Payload<T>?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistCodable(fetchStrategy: fetchStrategy) { (payload: Payload<T>?) in
+            codable = payload
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return codable
     }
 
     /// Calls the api, and exposes a codable item nested in a Payload.  The payload provides the date that the payload was retrieved.  It also includes the hash, which is used to identify this instance.  The hash is mainly used for internal purposes.
@@ -139,6 +226,22 @@ public extension URLRequest {
                 }
             }
         }
+    }
+
+    func inlinePersistPayloadCodable2<First: Codable, Second: Codable>(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> (Payload<First>?, Payload<Second>?)? {
+        var payloads: (Payload<First>?, Payload<Second>?)?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistCodable(fetchStrategy: fetchStrategy) {
+            (payload1: Payload<First>?, payload2: Payload<Second>?) in
+            payloads = (payload1, payload2)
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return payloads
     }
 
 
@@ -174,6 +277,22 @@ public extension URLRequest {
                 }
             }
         }
+    }
+
+    func inlinePersistCodable<First: Codable, Second: Codable>(
+        fetchStrategy: FetchStrategy,
+        usleepTime: useconds_t = 200_000
+    ) -> (First?, Second?)? {
+        var payloads: (First?, Second?)?
+        let semaphore = DispatchSemaphore(value: 0)
+        callPersistCodable(fetchStrategy: fetchStrategy) {
+            (payload1: First?, payload2: Second?) in
+            payloads = (payload1, payload2)
+            semaphore.signal()
+        }
+        usleep(usleepTime)
+        semaphore.wait()
+        return payloads
     }
 
     /// In cases where an endpoint might return 2 different codable items, this method will first check if the first was returned, and if it fails, returns the second.
