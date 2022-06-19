@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ElevatedUnderdogs/CommonExtensions.git",
       "state" : {
-        "revision" : "7b1e7850782f3bc899d84b15e0da133d1450f51f",
-        "version" : "1.1.0"
+        "revision" : "90893a6ff435fc9931a7a629b5a2a8876d52beaf",
+        "version" : "3.0.4"
       }
     }
   ],
