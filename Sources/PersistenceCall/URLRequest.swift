@@ -110,7 +110,7 @@ public extension URLRequest {
                     forKey: (deterministicHash + "data") as NSString
                 )
                 dataAction?(data)
-            }
+            }.resume()
         }
     }
 
