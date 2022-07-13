@@ -55,6 +55,64 @@ public extension URLRequest {
             }
         }
     }
+    
+    /*
+     
+     /// attempts to get data from a Callable resource
+     /// - Parameter dataAction: access the data here.  Passes nil if could not get the data.
+     public func getDownloadData(_ dataAction: DataAction? = nil) {
+         sessionDownloadTask(provideData: dataAction).resume()
+     }
+     
+     private func sessionDownloadTask(provideData: DataAction?) -> URLSessionDownloadTask {
+         URLSession.shared.downloadTask(with: self) { url, response, error in
+             guard let data = url?.data else {
+                 errorPrint()
+                 provideData?("error: \(error?.localizedDescription ?? "nil")".data(using: .utf8)!)
+                 return
+             }
+             provideData?(data)
+         }
+     }
+     */
+    
+    /// key: hash
+    /// value: url from download method
+    static var downloadCache: NSCache<NSString, NSString> = .init()
+    
+    /// Calls the api, and exposes Data
+    /// - Parameters:
+    ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
+    ///   - dataAction: exposes the Data from the web call.
+    func callPersistDownloadData(
+        fetchStrategy: FetchStrategy,
+        _ dataAction: DataAction? = nil
+    ) {
+        
+        // check if we saved a url for this request hash, and check if there is data at that url.
+        if let urlNSString: NSString = Self.downloadCache.object(forKey: (deterministicHash + "data") as NSString),
+          let availableData: Data = URL(string: urlNSString as String)?.data,
+          let payload: Payload<Data> = availableData.codable(),
+            fetchStrategy.tryCache(original: payload.date, current: Date()) {
+            
+            // We have the data locally already.
+            dataAction?(payload.value)
+        } else {
+            
+            // Failed to get the data must download it.
+            URLSession.shared.downloadTask(with: self) { url, response, error in
+                guard let data = url?.data else { return }
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "data")
+                let payloadData: Data = try! JSONEncoder().encode(payload)
+                try! payloadData.write(to: url!)
+                Self.downloadCache.setObject(
+                    (url?.absoluteString ?? "") as NSString,
+                    forKey: (deterministicHash + "data") as NSString
+                )
+                dataAction?(data)
+            }
+        }
+    }
 
     /// Uses a semaphore and a wait time to return Data inline from a web call.
     /// - Parameters:
