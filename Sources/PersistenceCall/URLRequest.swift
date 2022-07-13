@@ -101,12 +101,13 @@ public extension URLRequest {
             
             // Failed to get the data must download it.
             URLSession.shared.downloadTask(with: self.url!) { url, response, error in
-                guard let data = url?.data else { return }
+                guard let url = url,
+                        let data = try! Data(contentsOf: url) else { return }
                 let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "data")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
-                try! payloadData.write(to: url!)
+                try! payloadData.write(to: url)
                 Self.downloadCache.setObject(
-                    (url?.absoluteString ?? "") as NSString,
+                    (url.absoluteString ?? "") as NSString,
                     forKey: (deterministicHash + "data") as NSString
                 )
                 dataAction?(data)
