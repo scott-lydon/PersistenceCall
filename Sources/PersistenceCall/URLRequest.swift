@@ -91,9 +91,10 @@ public extension URLRequest {
         
         // check if we saved a url for this request hash, and check if there is data at that url.
         if let urlNSString: NSString = Self.downloadCache.object(forKey: (deterministicHash + "data") as NSString),
-          let availableData: Data = URL(string: urlNSString as String)?.data,
-          let payload: Payload<Data> = availableData.codable(),
-            fetchStrategy.tryCache(original: payload.date, current: Date()) {
+           let url: URL = URL(string: urlNSString as String),
+           let availableData = try? Data(contentsOf: url),
+           let payload: Payload<Data> = availableData.codable(),
+           fetchStrategy.tryCache(original: payload.date, current: Date()) {
             
             // We have the data locally already.
             dataAction?(payload.value)
