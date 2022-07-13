@@ -100,7 +100,7 @@ public extension URLRequest {
         } else {
             
             // Failed to get the data must download it.
-            URLSession.shared.downloadTask(with: self) { url, response, error in
+            URLSession.shared.downloadTask(with: self.url!) { url, response, error in
                 guard let data = url?.data else { return }
                 let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "data")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
