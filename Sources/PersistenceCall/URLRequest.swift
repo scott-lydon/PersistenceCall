@@ -84,10 +84,11 @@ public extension URLRequest {
     /// - Parameters:
     ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
     ///   - dataAction: exposes the Data from the web call.
+    @discardableResult
     func callPersistDownloadData(
         fetchStrategy: FetchStrategy,
         _ dataAction: DataAction? = nil
-    ) {
+    ) -> URLSessionDownloadTask? {
         
         // check if we saved a url for this request hash, and check if there is data at that url.
         if let urlNSString: NSString = Self.downloadCache.object(forKey: (deterministicHash + "data") as NSString),
@@ -98,21 +99,23 @@ public extension URLRequest {
             
             // We have the data locally already.
             dataAction?(payload.value)
+            return nil
         } else {
             
             // Failed to get the data must download it.
-            URLSession.shared.downloadTask(with: self.url!) { url, response, error in
+            let downloadTask = URLSession.shared.downloadTask(with: self.url!) { url, response, error in
                 guard let url = url,
-                        let data = try! Data(contentsOf: url) else { return }
+                        let data = try? Data(contentsOf: url) else { return }
                 let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "data")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try! payloadData.write(to: url)
-                Self.downloadCache.setObject(
-                    (url.absoluteString ?? "") as NSString,
+                Self.downloadCache.setObject(url.absoluteString as NSString,
                     forKey: (deterministicHash + "data") as NSString
                 )
                 dataAction?(data)
-            }.resume()
+            }
+            downloadTask.resume()
+            return downloadTask
         }
     }
 
