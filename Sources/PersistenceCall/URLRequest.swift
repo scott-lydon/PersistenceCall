@@ -90,18 +90,25 @@ public extension URLRequest {
         _ dataAction: DataAction? = nil
     ) -> URLSessionDownloadTask? {
         let localURL: URL = try! FileManager.default.with(hash: deterministicHash + "downloadData")
-        // check if we saved a url for this request hash, and check if there is
+        
+        // Check to see if the image was stored in the local cache
+        // in this current app session
         if let nsData = Self.downloadHash_ImgData.object(forKey: localURL.absoluteString as NSString) {
             
             dataAction?(Data(referencing: nsData))
             return nil
+            
+        // Check to see if the image was persisted in a prior app session
         } else if let payloadData: Data = try? FileHandle(forReadingFrom: localURL).availableData,
            let payload: Payload<URL> = payloadData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()),
            let imageData: Data = try? Data(contentsOf: payload.value) {
             
+            Self.downloadHash_ImgData.setObject(NSData(data: imageData), forKey: localURL.absoluteString as NSString)
             dataAction?(imageData)
             return nil
+            
+        // Download the image, it is not stored locally.
         } else {
             
             // Failed to get the data must download it.
