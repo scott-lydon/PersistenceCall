@@ -5,7 +5,7 @@ import Foundation
 
 final class PersistenceCallTests: XCTestCase {
     
-    func testStuff() {
+    func test3PartsOfPersistenceDownloadTask() {
         let savedDis: String = "Save dissed"
         let data = Data(savedDis.utf8)
         
