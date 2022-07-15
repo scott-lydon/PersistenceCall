@@ -75,6 +75,8 @@ public extension URLRequest {
          }
      }
      */
+    
+    static var downloadHash_ImgData: NSCache<NSString, NSData> = .init()
 
     /// It is recommended to call this method from a background thread if possible.
     ///
@@ -87,9 +89,13 @@ public extension URLRequest {
         fetchStrategy: FetchStrategy,
         _ dataAction: DataAction? = nil
     ) -> URLSessionDownloadTask? {
-        let localURL = try! FileManager.default.with(hash: deterministicHash + "downloadData")
+        let localURL: URL = try! FileManager.default.with(hash: deterministicHash + "downloadData")
         // check if we saved a url for this request hash, and check if there is
-        if let payloadData: Data = try? FileHandle(forReadingFrom: localURL).availableData,
+        if let nsData = Self.downloadHash_ImgData.object(forKey: localURL.absoluteString as NSString) {
+            
+            dataAction?(Data(referencing: nsData))
+            return nil
+        } else if let payloadData: Data = try? FileHandle(forReadingFrom: localURL).availableData,
            let payload: Payload<URL> = payloadData.codable(),
            fetchStrategy.tryCache(original: payload.date, current: Date()),
            let imageData: Data = try? Data(contentsOf: payload.value) {
@@ -105,6 +111,7 @@ public extension URLRequest {
                 let payload: Payload<URL> = Payload(date: Date(), value: url, hash: deterministicHash + "data")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try! payloadData.write(to: localURL)
+                Self.downloadHash_ImgData.setObject(NSData(data: data), forKey: localURL.absoluteString as NSString)
                 dataAction?(data)
             }
             downloadTask.resume()
