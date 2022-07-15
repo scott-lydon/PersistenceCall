@@ -9,6 +9,12 @@ import Foundation
 import Callable
 import CommonExtensions
 
+protocol DownloadTaskable {
+    func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask
+}
+
+extension URLSession: DownloadTaskable {}
+
 public extension URLRequest {
 
 
