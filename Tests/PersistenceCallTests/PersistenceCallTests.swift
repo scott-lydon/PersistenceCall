@@ -12,11 +12,11 @@ final class PersistenceCallTests: XCTestCase {
         let remindersDataURL = URL(fileURLWithPath: "Reminders", relativeTo: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first)
         try! data.write(to: remindersDataURL)
         
-        URLRequest.downloadHash_ImgData = .init()
+        URLRequest.downloadHashImgDataCache = .init()
         let localURL: URL = try! FileManager.default.with(hash: remindersDataURL.request!.deterministicHash + "downloadData")
         
         // 1. download task first run.
-        XCTAssertNil(URLRequest.downloadHash_ImgData.object(forKey: localURL.absoluteString as NSString))
+        XCTAssertNil(URLRequest.downloadHashImgDataCache.object(forKey: localURL.absoluteString as NSString))
         let semaphore = DispatchSemaphore(value: 0)
         var reachedClosure: Bool = false
         let downloadTask: URLSessionDownloadTask? = remindersDataURL.request?.callPersistDownloadData(
@@ -29,7 +29,7 @@ final class PersistenceCallTests: XCTestCase {
         XCTAssertNotNil(downloadTask)
         XCTAssertTrue(reachedClosure)
         XCTAssertEqual(
-            URLRequest.downloadHash_ImgData.object(forKey: localURL.absoluteString as NSString)
+            URLRequest.downloadHashImgDataCache.object(forKey: localURL.absoluteString as NSString)
             , NSData(data: data)
         )
         
@@ -48,7 +48,7 @@ final class PersistenceCallTests: XCTestCase {
         
         // 3. clear cache but still get the data
         
-        URLRequest.downloadHash_ImgData = .init()
+        URLRequest.downloadHashImgDataCache = .init()
         let semaphore2 = DispatchSemaphore(value: 0)
         var reachedClosure2: Bool = false
         let downloadTask2: URLSessionDownloadTask? = remindersDataURL.request?.callPersistDownloadData(
