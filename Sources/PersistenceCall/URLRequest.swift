@@ -82,7 +82,7 @@ public extension URLRequest {
      }
      */
     
-    static var downloadHash_ImgData: NSCache<NSString, NSData> = .init()
+    static var downloadHashImgDataCache: NSCache<NSString, NSData> = .init()
 
     /// It is recommended to call this method from a background thread if possible.
     ///
@@ -99,19 +99,18 @@ public extension URLRequest {
         
         // Check to see if the image was stored in the local cache
         // in this current app session
-        if let nsData = Self.downloadHash_ImgData.object(forKey: localURL.absoluteString as NSString) {
+        if let nsData = Self.downloadHashImgDataCache.object(forKey: localURL.absoluteString as NSString) {
             
             dataAction?(Data(referencing: nsData))
             return nil
             
         // Check to see if the image was persisted in a prior app session
         } else if let payloadData: Data = try? FileHandle(forReadingFrom: localURL).availableData,
-           let payload: Payload<URL> = payloadData.codable(),
-           fetchStrategy.tryCache(original: payload.date, current: Date()),
-           let imageData: Data = try? Data(contentsOf: payload.value) {
+           let payload: Payload<Data> = payloadData.codable(),
+           fetchStrategy.tryCache(original: payload.date, current: Date()) {
             
-            Self.downloadHash_ImgData.setObject(NSData(data: imageData), forKey: localURL.absoluteString as NSString)
-            dataAction?(imageData)
+            Self.downloadHashImgDataCache.setObject(NSData(data: payload.value), forKey: localURL.absoluteString as NSString)
+            dataAction?(payload.value)
             return nil
             
         // Download the image, it is not stored locally.
@@ -121,10 +120,10 @@ public extension URLRequest {
             let downloadTask = URLSession.shared.downloadTask(with: self.url!) { url, response, error in
                 guard let url = url,
                       let data = try? Data(contentsOf: url) else { return }
-                let payload: Payload<URL> = Payload(date: Date(), value: url, hash: deterministicHash + "data")
+                let payload: Payload<Data> = Payload(date: Date(), value: data, hash: deterministicHash + "downloadData")
                 let payloadData: Data = try! JSONEncoder().encode(payload)
                 try! payloadData.write(to: localURL)
-                Self.downloadHash_ImgData.setObject(NSData(data: data), forKey: localURL.absoluteString as NSString)
+                Self.downloadHashImgDataCache.setObject(NSData(data: data), forKey: localURL.absoluteString as NSString)
                 dataAction?(data)
             }
             downloadTask.resume()
