@@ -184,7 +184,7 @@ public extension URLRequest {
     ) -> T? {
         var codable: T?
         let semaphore = DispatchSemaphore(value: 0)
-        callPersistCodable(fetchStrategy: fetchStrategy) { t in
+        callPersistCodable(fetchStrategy: fetchStrategy) { (t: T?) in
             codable = t
             semaphore.signal()
         }
@@ -230,7 +230,7 @@ public extension URLRequest {
     ) -> Payload<Data>? {
         var codable: Payload<Data>?
         let semaphore = DispatchSemaphore(value: 0)
-        callPersistData(fetchStrategy: fetchStrategy) { (payload: Payload<Data>?) in
+        callPersistPayloadData(fetchStrategy: fetchStrategy) { (payload: Payload<Data>?) in
             codable = payload
             semaphore.signal()
         }
@@ -244,7 +244,7 @@ public extension URLRequest {
     /// - Parameters:
     ///   - fetchStrategy: alwaysUseCacheIfAvailable, newCall, refreshAfter time interval.
     ///   - dataAction: exposes the Data from the web call along with the date that it was retrieved in a Payload.
-    func callPersistData(
+    func callPersistPayloadData(
         fetchStrategy: FetchStrategy,
         _ dataAction: ((Payload<Data>) -> Void)? = nil
     ){
