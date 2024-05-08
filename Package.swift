@@ -14,7 +14,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/ElevatedUnderdogs/Callable.git", .upToNextMajor(from: Version(1, 3, 0))),
+        .package(url: "https://github.com/ElevatedUnderdogs/Callable.git", .upToNextMajor(from: Version(2, 0, 0))),
         .package(url: "https://github.com/ElevatedUnderdogs/CommonExtensions.git", .upToNextMajor(from: Version(4, 0, 0)))
     ],
     targets: [
