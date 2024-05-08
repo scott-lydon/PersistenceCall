@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ElevatedUnderdogs/Callable.git",
       "state" : {
-        "revision" : "f44ad68588ec6297235d76ed38494967cab9d611",
-        "version" : "1.3.0"
+        "revision" : "bbb7630d631e7e0432d97cada1eca69bd5216a06",
+        "version" : "2.0.0"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ElevatedUnderdogs/CommonExtensions.git",
       "state" : {
-        "revision" : "3eb474e3731210975eda3181b53d929043729001",
-        "version" : "4.0.1"
+        "revision" : "bfca4d77370ee47851b363e0b478e6182bdee8d8",
+        "version" : "4.0.5"
       }
     }
   ],
