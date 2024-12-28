@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ElevatedUnderdogs/Callable.git",
       "state" : {
-        "revision" : "bbb7630d631e7e0432d97cada1eca69bd5216a06",
-        "version" : "2.0.0"
+        "revision" : "5e6de476a268e5858b78eed17d51162eccaf4203",
+        "version" : "3.0.0"
       }
     },
     {
